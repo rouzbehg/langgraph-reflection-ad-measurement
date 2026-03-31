@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "rct_diagnosis_agent": "./src/rct_diagnosis_agent/studio.py:graph"
+  },
+  "env": ".env"
+}
