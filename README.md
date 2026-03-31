@@ -34,19 +34,36 @@ export LANGSMITH_PROJECT=langgraph-reflection-ad-measurement
 4. Materialize the reusable synthetic dataset once:
 
 ```bash
-python -m rct_diagnosis_agent.materialize --count 25 --seed 7
+rct-materialize --count 25 --seed 7
 ```
 
 5. Generate and diagnose one stored experiment:
 
 ```bash
-python -m rct_diagnosis_agent.runner single --dataset-path data/synthetic/dataset_v1/campaigns.parquet --experiment-index 0
+rct-diagnose single --dataset-path data/synthetic/dataset_v1/campaigns.parquet --experiment-index 0
 ```
 
 6. Run a small evaluation against the stored dataset:
 
 ```bash
-python -m rct_diagnosis_agent.runner evaluate --dataset-path data/synthetic/dataset_v1/campaigns.parquet --count 12
+rct-diagnose evaluate --dataset-path data/synthetic/dataset_v1/campaigns.parquet --count 12
+```
+
+## CLI
+
+After `pip install -e .`, the project exposes two console commands:
+
+- `rct-materialize`
+  - create or reuse the persisted synthetic dataset
+- `rct-diagnose`
+  - run the agent pipeline with the existing `single` and `evaluate` subcommands
+
+Examples:
+
+```bash
+rct-materialize --count 25 --seed 7
+rct-diagnose single --experiment-index 0
+rct-diagnose evaluate --count 12
 ```
 
 ## Project layout

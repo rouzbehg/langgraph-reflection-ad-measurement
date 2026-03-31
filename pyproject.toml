@@ -27,6 +27,10 @@ dev = [
   "pytest>=8.0.0",
 ]
 
+[project.scripts]
+rct-diagnose = "rct_diagnosis_agent.runner:main"
+rct-materialize = "rct_diagnosis_agent.materialize:main"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
