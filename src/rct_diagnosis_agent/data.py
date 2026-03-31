@@ -87,13 +87,11 @@ class SyntheticExperimentGenerator:
         config = self._config_from_names(failure_modes) if failure_modes else self.sample_failure_config()
 
         impressions = int(self.np_random.integers(50_000, 5_000_001))
-        ctr = float(self.np_random.uniform(0.008, 0.045))
-        clicks = int(self.np_random.binomial(impressions, ctr))
         avg_conversion_value = round(float(self.np_random.uniform(35.0, 220.0)), 2)
-        avg_cpc = float(self.np_random.uniform(0.35, 3.2))
-        spend = round(clicks * avg_cpc * float(self.np_random.uniform(0.92, 1.08)), 2)
+        estimated_ctr = float(self.np_random.uniform(0.008, 0.045))
+        estimated_clicks = int(self.np_random.binomial(impressions, estimated_ctr))
 
-        total_users = int(min(max(clicks, 800), self.np_random.integers(2_000, 30_001)))
+        total_users = int(min(max(estimated_clicks, 800), self.np_random.integers(2_000, 30_001)))
         if config.low_power:
             total_users = int(max(300, total_users * 0.18))
 
@@ -129,10 +127,31 @@ class SyntheticExperimentGenerator:
             segment_summaries, control_post_mean, treatment_post_mean = self._simpsons_segments()
             treatment_heterogeneity = True
 
+        impression_share_treatment = treatment_users / (control_users + treatment_users)
+        treatment_impressions = int(round(impressions * impression_share_treatment))
+        control_impressions = max(1, impressions - treatment_impressions)
+        treatment_impressions = max(1, treatment_impressions)
+
+        base_ctr = float(self.np_random.uniform(0.008, 0.045))
+        control_ctr = float(np.clip(base_ctr + self.np_random.normal(0.0, 0.0015), 0.001, 0.2))
+        treatment_ctr = float(np.clip(base_ctr + self.np_random.normal(0.0, 0.0015), 0.001, 0.2))
+        control_clicks = int(self.np_random.binomial(control_impressions, control_ctr))
+        treatment_clicks = int(self.np_random.binomial(treatment_impressions, treatment_ctr))
+        clicks = control_clicks + treatment_clicks
+
+        control_cpc = float(self.np_random.uniform(0.35, 3.2))
+        treatment_cpc = float(np.clip(control_cpc * self.np_random.uniform(0.9, 1.1), 0.2, 6.0))
+
         control_conversions = int(self.np_random.binomial(control_users, control_post_mean))
         treatment_conversions = int(self.np_random.binomial(treatment_users, treatment_post_mean))
         total_conversions = control_conversions + treatment_conversions
-        revenue = round(total_conversions * avg_conversion_value, 2)
+        control_revenue = round(control_conversions * avg_conversion_value, 2)
+        treatment_revenue = round(treatment_conversions * avg_conversion_value, 2)
+        revenue = round(control_revenue + treatment_revenue, 2)
+
+        control_spend = round(control_clicks * control_cpc * float(self.np_random.uniform(0.92, 1.08)), 2)
+        treatment_spend = round(treatment_clicks * treatment_cpc * float(self.np_random.uniform(0.92, 1.08)), 2)
+        spend = round(control_spend + treatment_spend, 2)
 
         control_conversion_rate = round(control_conversions / control_users, 4)
         treatment_conversion_rate = round(treatment_conversions / treatment_users, 4)
@@ -170,6 +189,14 @@ class SyntheticExperimentGenerator:
             revenue=revenue,
             control_size=control_users,
             treatment_size=treatment_users,
+            control_impressions=control_impressions,
+            treatment_impressions=treatment_impressions,
+            control_clicks=control_clicks,
+            treatment_clicks=treatment_clicks,
+            control_spend=control_spend,
+            treatment_spend=treatment_spend,
+            control_revenue=control_revenue,
+            treatment_revenue=treatment_revenue,
             control_users=control_users,
             treatment_users=treatment_users,
             control_conversions=control_conversions,

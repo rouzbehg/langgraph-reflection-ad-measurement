@@ -84,7 +84,7 @@ rct-diagnose evaluate --count 12
 - Synthetic data is stored on disk as `data/synthetic/dataset_v1/campaigns.parquet`.
 - The standard persisted dataset entrypoint is `load_or_generate_data(config)`.
 - All standard entrypoints use a generate-if-missing pattern: they load the existing versioned dataset first and only generate one if the file does not exist.
-- Each stored experiment includes campaign-level metrics, experiment-level treatment/control aggregates, latent factors, and hidden causal truth for evaluation.
+- Each stored experiment includes campaign-level metrics, treatment/control arm metrics for impressions, clicks, spend, revenue, experiment aggregates, latent factors, and hidden causal truth for evaluation only.
 - Reflection is implemented as an explicit critique-and-revision pass.
 - Tool use is intentionally light and easy to inspect.
 - If LangSmith is configured, each stage and tool invocation will appear in the trace.

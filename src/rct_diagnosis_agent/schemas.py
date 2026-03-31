@@ -37,6 +37,14 @@ class ExperimentSummary(BaseModel):
     revenue: Optional[float] = None
     control_size: int
     treatment_size: int
+    control_impressions: Optional[int] = None
+    treatment_impressions: Optional[int] = None
+    control_clicks: Optional[int] = None
+    treatment_clicks: Optional[int] = None
+    control_spend: Optional[float] = None
+    treatment_spend: Optional[float] = None
+    control_revenue: Optional[float] = None
+    treatment_revenue: Optional[float] = None
     control_users: Optional[int] = None
     treatment_users: Optional[int] = None
     control_conversions: Optional[int] = None
