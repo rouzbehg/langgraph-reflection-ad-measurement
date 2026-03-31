@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import random
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, List, Sequence
 
 from .schemas import ExperimentSummary, IssueName, SegmentSummary
@@ -160,3 +162,37 @@ class SyntheticExperimentGenerator:
 
 def experiments_to_rows(experiments: Iterable[ExperimentSummary]) -> List[dict]:
     return [experiment.model_dump() for experiment in experiments]
+
+
+DEFAULT_DATASET_PATH = Path(__file__).resolve().parents[2] / "data" / "synthetic_experiments.jsonl"
+
+
+def save_experiments(experiments: Iterable[ExperimentSummary], output_path: str | Path = DEFAULT_DATASET_PATH) -> Path:
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        for experiment in experiments:
+            handle.write(json.dumps(experiment.model_dump()))
+            handle.write("\n")
+    return path
+
+
+def load_experiments(dataset_path: str | Path = DEFAULT_DATASET_PATH) -> List[ExperimentSummary]:
+    path = Path(dataset_path)
+    with path.open("r", encoding="utf-8") as handle:
+        return [ExperimentSummary.model_validate_json(line) for line in handle if line.strip()]
+
+
+def ensure_dataset(
+    *,
+    dataset_path: str | Path = DEFAULT_DATASET_PATH,
+    count: int = 25,
+    seed: int = 7,
+    failure_modes: Sequence[str] | None = None,
+) -> Path:
+    path = Path(dataset_path)
+    if path.exists():
+        return path
+    generator = SyntheticExperimentGenerator(seed=seed)
+    experiments = generator.generate_many(count=count, failure_modes=failure_modes)
+    return save_experiments(experiments, output_path=path)
