@@ -16,12 +16,31 @@ class SegmentSummary(BaseModel):
     treatment_conversion_rate: float
 
 
+class LatentFactors(BaseModel):
+    pre_period_imbalance: bool = False
+    outliers: bool = False
+    treatment_heterogeneity: bool = False
+    noise_level: Literal["low", "medium", "high"] = "medium"
+
+
 class ExperimentSummary(BaseModel):
     experiment_id: str
     hypothesis: str
+    dataset_id: Optional[str] = None
+    random_seed: Optional[int] = None
     expected_treatment_share: float = 0.5
+    impressions: Optional[int] = None
+    clicks: Optional[int] = None
+    spend: Optional[float] = None
+    conversions: Optional[int] = None
+    avg_conversion_value: Optional[float] = None
+    revenue: Optional[float] = None
     control_size: int
     treatment_size: int
+    control_users: Optional[int] = None
+    treatment_users: Optional[int] = None
+    control_conversions: Optional[int] = None
+    treatment_conversions: Optional[int] = None
     control_pre_mean: float
     treatment_pre_mean: float
     control_pre_std: float
@@ -34,12 +53,21 @@ class ExperimentSummary(BaseModel):
     treatment_conversion_rate: float
     primary_metric: str = "conversion_rate"
     notes: List[str] = Field(default_factory=list)
+    latent_factors: LatentFactors = Field(default_factory=LatentFactors)
     segment_summaries: List[SegmentSummary] = Field(default_factory=list)
     hidden_truth: List[IssueName] = Field(default_factory=list)
+    true_baseline_conversion_rate: Optional[float] = None
+    true_treatment_effect: Optional[float] = None
+    true_incremental_conversions: Optional[float] = None
+    true_iROAS: Optional[float] = None
 
     def to_prompt_dict(self) -> Dict[str, Any]:
         payload = self.model_dump()
         payload.pop("hidden_truth", None)
+        payload.pop("true_baseline_conversion_rate", None)
+        payload.pop("true_treatment_effect", None)
+        payload.pop("true_incremental_conversions", None)
+        payload.pop("true_iROAS", None)
         return payload
 
 

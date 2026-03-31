@@ -8,7 +8,7 @@ from typing import Sequence
 from dotenv import load_dotenv
 
 from .agent import build_default_agent
-from .data import DEFAULT_DATASET_PATH, ensure_dataset, load_experiments
+from .data import DatasetConfig, DEFAULT_DATASET_PATH, load_experiments, load_or_generate_data
 from .evaluation import evaluate_agent
 
 
@@ -45,27 +45,22 @@ def main() -> None:
     failure_modes = _parse_failure_modes(args.failure_modes)
     dataset_path = Path(args.dataset_path)
 
-    if args.command == "single":
-        ensure_dataset(
-            dataset_path=dataset_path,
+    experiments = load_or_generate_data(
+        DatasetConfig(
             count=args.dataset_count,
             seed=args.seed,
             failure_modes=failure_modes,
+            dataset_path=dataset_path,
         )
-        experiments = load_experiments(dataset_path)
+    )
+
+    if args.command == "single":
         experiment = experiments[args.experiment_index]
         result = agent.run(experiment)
         print(json.dumps(result.model_dump(), indent=2))
         return
 
-    ensure_dataset(
-        dataset_path=dataset_path,
-        count=args.dataset_count,
-        seed=args.seed,
-        failure_modes=failure_modes,
-    )
-    experiments = load_experiments(dataset_path)[: args.count]
-    rows, summary = evaluate_agent(agent, experiments)
+    rows, summary = evaluate_agent(agent, experiments[: args.count])
     print(json.dumps({"summary": summary.model_dump(), "rows": [row.model_dump() for row in rows]}, indent=2))
 
 

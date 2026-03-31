@@ -5,7 +5,7 @@ This repository contains a minimal but well-structured educational project for d
 ## What is included
 
 - Synthetic experiment generator with controllable failure modes
-- Disk-backed synthetic dataset workflow with generate-if-missing behavior
+- Disk-backed synthetic dataset workflow with strict load-or-generate behavior
 - A single-agent pipeline with `Analyzer -> Critic -> Reviser`
 - Light tool use for SRM and pre-period balance checks
 - Structured JSON outputs at every stage
@@ -40,13 +40,13 @@ python -m rct_diagnosis_agent.materialize --count 25 --seed 7
 5. Generate and diagnose one stored experiment:
 
 ```bash
-python -m rct_diagnosis_agent.runner single --dataset-path data/synthetic_experiments.jsonl --experiment-index 0
+python -m rct_diagnosis_agent.runner single --dataset-path data/synthetic/dataset_v1/campaigns.parquet --experiment-index 0
 ```
 
 6. Run a small evaluation against the stored dataset:
 
 ```bash
-python -m rct_diagnosis_agent.runner evaluate --dataset-path data/synthetic_experiments.jsonl --count 12
+python -m rct_diagnosis_agent.runner evaluate --dataset-path data/synthetic/dataset_v1/campaigns.parquet --count 12
 ```
 
 ## Project layout
@@ -64,8 +64,10 @@ python -m rct_diagnosis_agent.runner evaluate --dataset-path data/synthetic_expe
 ## Notes
 
 - The project uses experiment-level summaries rather than raw user-level logs.
-- Synthetic data is stored on disk as `data/synthetic_experiments.jsonl`.
-- All standard entrypoints use a generate-if-missing pattern: they load the existing dataset first and only generate one if the file does not exist.
+- Synthetic data is stored on disk as `data/synthetic/dataset_v1/campaigns.parquet`.
+- The standard persisted dataset entrypoint is `load_or_generate_data(config)`.
+- All standard entrypoints use a generate-if-missing pattern: they load the existing versioned dataset first and only generate one if the file does not exist.
+- Each stored experiment includes campaign-level metrics, experiment-level treatment/control aggregates, latent factors, and hidden causal truth for evaluation.
 - Reflection is implemented as an explicit critique-and-revision pass.
 - Tool use is intentionally light and easy to inspect.
 - If LangSmith is configured, each stage and tool invocation will appear in the trace.
